@@ -28,3 +28,7 @@ the avis in sfig2, sfig3 and sfig4 were generated
 
 [1] Robinson S, Bachrata B, Eckstein K, Trattnig S, Enzinger, Christian, Barth, Markus. Improved dynamic distortion correction for fMRI using single-echo EPI, a fast sensitivity scan and readout-reversed first image (REFILL). Proc. 2021 ISMRM SMRT Annu. Meet. Exhib. Virtual 2021:671.
 [2] Robinson S, Bachrata B, Eckstein K, et al. Evaluation of the REFILL dynamic distortion correction method for fMRI. Proc. 2022 ISMRM SMRT Annu. Meet. Exhib. Virtual 2022:671.
+
+Includes
+1) Tools for NIfTI and ANALYZE image by Jimmy Shen https://de.mathworks.com/matlabcentral/fileexchange/8797-tools-for-nifti-and-analyze-image?s_tid=ta_fx_results
+2) Cosine transform functions dctn and idctn by Damian Garcia 
