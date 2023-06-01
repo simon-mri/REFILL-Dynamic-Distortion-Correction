@@ -1,0 +1,63 @@
+# bash commands for generating Figure 5 in 
+# "Improved dynamic distortion correction for fMRI using single-echo EPI and a readout-reversed first image (REFILL)" 
+# Simon Daniel Robinson, Beata Bachrata, Korbinian Eckstein, Saskia Bollmann, Steffen Bollmann, Shota Hodono, Martijn Cloos, Monique Tourell, Jin Jin, Kieran O’Brien, David C. Reutens, Siegfried Trattnig, Christian Enzinger, Markus Barth
+# - Reference to be updated -
+
+# figure 5 is s5
+# dd needs to be defined
+# directories 95 and 91 are those of the time-series and reverse PE gradient-polarity image, respectively
+ 
+# %%%%%%%%%%%%%%%% TOPUP %%%%%%%%%%%%%%%%%%%%%%%
+
+#https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/topup/TopupUsersGuide
+
+mkdir topup_tests/s5/topup
+
+fslmerge -t mag_up_down $dd/s5/nifti/91/Image.nii $dd/s5/nifti/95/Image.nii
+fslmaths mag_up_down -nan mag_up_down -odt float
+
+#1-step (to have distortion field in Hz)
+time topup --imain=mag_up_down --datain=acquisition_parameters.txt --config=b02b0.cnf --out=topup_results --fout=topup_field_hz --iout=epi_m_topup -v > time_to_complete.txt
+
+#2-step (for the correction)
+topup --imain=mag_up_down --datain=acquisition_parameters.txt --config=b02b0.cnf --out=topup_results -v
+applytopup --imain=blip_up,blip_down --inindex=1,2 --datain=acquisition_parameters.txt --topup=topup_results --out=my_hifi_images]
+
+#3 difference between ge and topup
+cp ../refill/ge_fm-mean_hz.nii ../refill/ge_fm-mean_hz_no-orient.nii; fslorient -deleteorient ../refill/ge_fm-mean_hz_no-orient.nii
+fslmaths ../refill/ge_fm-mean_hz_no-orient.nii -sub topup_field_hz.nii ge-topup_fm_hz.nii
+
+#4 mask difference 
+fslorient -deleteorient  ../refill/ge_m_bet_mask_echo1_no-orient.nii
+fslmaths ge-topup_fm_hz -mul ../refill/ge_m_bet_mask_no-orient.nii ge-epi_fm_hz_bet.nii
+
+4m30.888s
+
+# %%%%%%%%%%%%%%%%%%% REFILL %%%%%%%%%%%%%%%%%%%%%%%
+
+topup_tests/s5/refill
+
+ln -s s5/EPI_recoed_with_NoFatSat5_TA5/evaluation/steps/epi_fm_dc.nii
+ln -s s5/EPI_recoed_with_NoFatSat5_TA5/evaluation/steps/epi_m_dc.nii 
+ln -s s5/EPI_recoed_with_NoFatSat5_TA5/evaluation/steps/ge_m.nii 
+ln -s s5/EPI_recoed_with_NoFatSat5_TA5/evaluation/steps/epi_m.nii 
+ln -s s5/EPI_recoed_with_NoFatSat5_TA5/evaluation/steps/ge_fm-mean.nii 
+fslmaths ge_fm-mean.nii -div 6.2831853072 ge_fm-mean_hz.nii
+fslmaths epi_fm_dc.nii -div 6.2831853072 epi_fm_dc_hz.nii
+fslmaths ge_fm-mean_hz.nii -sub epi_fm_dc_hz.nii ge-epi_fm_hz.nii
+
+fslmaths ge_m.nii -nan ge_m.nii
+bet ge_m.nii ge_m_bet.nii -m
+fslmaths ge_m_bet_mask.nii -ero ge_m_bet_mask.nii
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+RANGE FIELDMAPS: -150->+150 Hz
+RANGE FIELD Difference maps: -75->+75 Hz
+write Slice 18 to current_papers/SR_DDC/fig5_REFILL_cf_TOPUP/pngs/originals
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+The distorted lines images were generated with matlab/mine/aspire_and_ddc/distorted_lines.m
+
+
